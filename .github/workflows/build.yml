@@ -15,11 +15,11 @@ on:
       openclash_version:
         description: 'OpenClash 版本（上游 vernesong/OpenClash）'
         required: true
-        default: '0.47.156'
+        default: '0.48.002'
       ddns_go_version:
         description: 'DDNS-GO 版本（上游 jeessy2/ddns-go）'
         required: true
-        default: '6.17.7'
+        default: '6.18.0'
       use_oaf_v7:
         description: '把 OAF 升级到 v7（内核不匹配会自动跳过）'
         type: boolean
