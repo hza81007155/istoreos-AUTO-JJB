@@ -12,14 +12,6 @@ on:
         description: '官方镜像 URL；留空=自动从官方 OTA 清单取“当前最新”（推荐留空）'
         required: false
         default: ''
-      openclash_version:
-        description: 'OpenClash 版本（上游 vernesong/OpenClash）'
-        required: true
-        default: '0.48.002'
-      ddns_go_version:
-        description: 'DDNS-GO 版本（上游 jeessy2/ddns-go）'
-        required: true
-        default: '6.18.0'
       use_oaf_v7:
         description: '把 OAF 升级到 v7（内核不匹配会自动跳过）'
         type: boolean
@@ -94,23 +86,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y squashfs-tools pigz curl python3
-
-      - name: 下载 OpenClash（官方 release 的真 apk 包）
-        run: |
-          set -e
-          V="$OPENCLASH_VERSION"
-          U="https://github.com/vernesong/OpenClash/releases/download/v$V/luci-app-openclash-$V.apk"
-          curl -fSL --retry 3 -o openclash.apk "$U" || curl -fSL --retry 3 -o openclash.apk "https://ghfast.top/$U"
-          ls -l openclash.apk
-          echo -n "包格式(magic 应为 ADBd): "; od -An -c -N4 openclash.apk | tr -s ' '
-
-      - name: 下载 DDNS-GO（官方静态二进制）
-        run: |
-          set -e
-          V="$DDNS_GO_VERSION"
-          U="https://github.com/jeessy2/ddns-go/releases/download/v$V/ddns-go_${V}_linux_x86_64.tar.gz"
-          curl -fSL --retry 3 -o ddns-go.tar.gz "$U" || curl -fSL --retry 3 -o ddns-go.tar.gz "https://ghfast.top/$U"
-          tar tzf ddns-go.tar.gz
 
       - name: 构建精简镜像
         id: build
