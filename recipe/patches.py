@@ -212,73 +212,7 @@ def patch_smartd_conf(root):
     put(os.path.join(root, "etc/smartd.conf"), "/dev/hdb -H\n", 0o644)
 
 
-# ---------------------------------------------------------------------------
-# 5) DDNS-GO：二进制（由工作流下载）+ 集成文件
-# ---------------------------------------------------------------------------
-# (目标路径, 仓库里的文件名, 权限)
-DDNS_GO_FILES = [
-    ("etc/init.d/ddns-go", "init.d-ddns-go", 0o755),
-    ("etc/config/ddns-go", "config-ddns-go", 0o644),
-    ("etc/uci-defaults/95-ddns-go", "95-ddns-go", 0o755),
-    ("usr/lib/lua/luci/controller/ddnsgo.lua", "ddnsgo.lua", 0o644),
-    ("usr/lib/lua/luci/view/ddnsgo.htm", "ddnsgo.htm", 0o644),
-    ("usr/share/rpcd/acl.d/luci-app-ddns-go.json", "luci-app-ddns-go.json", 0o644),
-]
-
-
-def patch_ddns_go(root, files_dir, binary=None):
-    for rel, fname, mode in DDNS_GO_FILES:
-        src = os.path.join(files_dir, "ddns-go", fname)
-        dst = os.path.join(root, rel)
-        if not os.path.exists(src):
-            FAIL.append("缺少 DDNS-GO 集成文件: %s" % src)
-            continue
-        copy(src, dst, mode)
-    # 开机自启软链（首启脚本建得太晚，第一次开机不会起）
-    rcd = os.path.join(root, "etc/rc.d")
-    os.makedirs(rcd, exist_ok=True)
-    for link in ("S95ddns-go", "K10ddns-go"):
-        p = os.path.join(rcd, link)
-        if os.path.lexists(p):
-            os.unlink(p)
-        os.symlink("../init.d/ddns-go", p)
-    if binary:
-        copy(binary, os.path.join(root, "usr/bin/ddns-go"), 0o755)
-
-
-# ---------------------------------------------------------------------------
-# 6) OpenClash：规则数据/界面来自 apk（由工作流下载），这里只做收尾
-# ---------------------------------------------------------------------------
-def patch_openclash(root):
-    # 默认关闭（首次使用需自己下内核、加订阅），并确保目录存在
-    cfg = os.path.join(root, "etc/config/openclash")
-    if os.path.exists(cfg):
-        s = _read(cfg)
-        s = re.sub(r"option enable '1'", "option enable '0'", s, count=1)
-        _write(cfg, s)
-    os.makedirs(os.path.join(root, "etc/openclash/core"), exist_ok=True)
-
-    # ★ 补上开机自启软链。
-    # 我们装 apk 时带了 --no-scripts（CI 里非 root，post-install 脚本会失败），
-    # 而 OpenClash 的 post-install 里那句 "/etc/init.d/openclash enable" 正好被跳过，
-    # 于是 /etc/rc.d/S99openclash 不存在 —— 开机根本不启动 OpenClash。
-    # 现象：开机后内核进程没有、7874 不监听、/tmp/openclash.log 不存在，
-    #       但上次手动启停留下的 DNS 劫持(把 dnsmasq 指到 127.0.0.1#7874)还在，
-    #       dnsmasq 解析失败 -> 首页显示「DNS 错误」；手动关一次再开就正常。
-    init = os.path.join(root, "etc/init.d/openclash")
-    if not os.path.exists(init):
-        FAIL.append("没找到 /etc/init.d/openclash（OpenClash 没装上？）")
-        return
-    rcd = os.path.join(root, "etc/rc.d")
-    os.makedirs(rcd, exist_ok=True)
-    for link_name in ("S99openclash", "K15openclash"):   # 与 init 里的 START=99 / STOP=15 对应
-        link = os.path.join(rcd, link_name)
-        if os.path.lexists(link):
-            os.unlink(link)
-        os.symlink("../init.d/openclash", link)
-    print("  已补上 OpenClash 开机自启软链 S99openclash / K15openclash")
-
-
+# -------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
 # 7) OTA 在线升级指向本项目仓库
