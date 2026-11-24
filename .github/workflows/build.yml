@@ -123,8 +123,6 @@ jobs:
           printf '[%s](%s)\nSHA256: %s\n' "$VER" "$IMG" "$SHA" > version.latest.v2
           { echo "$VER"; [ "$UP" = "$VER" ] || echo "$UP"; } > version.index.v2
           printf '%s\n' "$UP" > upstream.ver
-          echo "--- version.latest.v2 ---"; cat version.latest.v2
-          echo "--- version.index.v2 ---"; cat version.index.v2
           echo "--- upstream.ver ---"; cat upstream.ver
 
       - name: 上传构建产物
