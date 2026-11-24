@@ -35,8 +35,6 @@ permissions:
 
 env:
   # 非 workflow_dispatch 触发时 inputs.* 是空的，这里统一给默认值
-  OPENCLASH_VERSION: ${{ inputs.openclash_version || '0.47.156' }}
-  DDNS_GO_VERSION: ${{ inputs.ddns_go_version || '6.17.7' }}
   USE_OAF_V7: ${{ (github.event_name != 'workflow_dispatch' || inputs.use_oaf_v7) && 'true' || 'false' }}
   MAKE_RELEASE: ${{ (github.event_name != 'workflow_dispatch' || inputs.make_release) && 'true' || 'false' }}
   OFFICIAL_OTA_BASE: https://fw.koolcenter.com/iStoreOS/x86_64_efi
